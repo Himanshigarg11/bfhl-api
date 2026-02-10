@@ -9,16 +9,38 @@ app.use(express.json());
 
 const EMAIL = "Himanshi0771.be23@chitkara.edu.in";
 
-/* ROOT */
-app.get("/", (req, res) => {
-  res.status(200).json({
-    is_success: true,
-    message: "BFHL API is running",
-    official_email: EMAIL
-  });
-});
+/* ---------- HELPER FUNCTIONS ---------- */
 
-/* HEALTH */
+function fibonacci(n) {
+  let arr = [0, 1];
+  for (let i = 2; i < n; i++) {
+    arr.push(arr[i - 1] + arr[i - 2]);
+  }
+  return arr.slice(0, n);
+}
+
+function isPrime(num) {
+  if (num < 2) return false;
+  for (let i = 2; i * i <= num; i++) {
+    if (num % i === 0) return false;
+  }
+  return true;
+}
+
+function gcd(a, b) {
+  return b === 0 ? a : gcd(b, a % b);
+}
+
+function hcf(arr) {
+  return arr.reduce((a, b) => gcd(a, b));
+}
+
+function lcm(arr) {
+  return arr.reduce((a, b) => (a * b) / gcd(a, b));
+}
+
+/* ---------- ROUTES ---------- */
+
 app.get("/health", (req, res) => {
   res.status(200).json({
     is_success: true,
@@ -26,7 +48,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-/* BFHL */
+
 app.post("/bfhl", async (req, res) => {
   try {
     const body = req.body;
@@ -44,42 +66,39 @@ app.post("/bfhl", async (req, res) => {
     let data;
 
     if (key === "fibonacci") {
-      let arr = [0, 1];
-      for (let i = 2; i < body[key]; i++) {
-        arr.push(arr[i - 1] + arr[i - 2]);
-      }
-      data = arr.slice(0, body[key]);
+      data = fibonacci(body[key]);
     } 
     else if (key === "prime") {
-      data = body[key].filter(n => {
-        if (n < 2) return false;
-        for (let i = 2; i * i <= n; i++) {
-          if (n % i === 0) return false;
-        }
-        return true;
-      });
+      data = body[key].filter(isPrime);
     } 
     else if (key === "hcf") {
-      const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
-      data = body[key].reduce((a, b) => gcd(a, b));
+      data = hcf(body[key]);
     } 
     else if (key === "lcm") {
-      const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
-      data = body[key].reduce((a, b) => (a * b) / gcd(a, b));
+      data = lcm(body[key]);
     } 
-    else if (key === "AI") {
-      const aiRes = await axios.post(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+   else if (key === "AI") {
+  const aiRes = await axios.post(
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+    {
+      contents: [
         {
-          contents: [{ parts: [{ text: body[key] }] }]
-        },
-        {
-          params: { key: process.env.GEMINI_API_KEY }
+          parts: [{ text: body[key] }]
         }
-      );
+      ]
+    },
+    {
+      params: {
+        key: process.env.GEMINI_API_KEY
+      }
+    }
+  );
 
-      data = aiRes.data.candidates[0].content.parts[0].text.trim();
-    } 
+  data = aiRes.data.candidates[0].content.parts[0].text.trim();
+}
+
+
+
     else {
       return res.status(400).json({
         is_success: false,
@@ -104,4 +123,6 @@ app.post("/bfhl", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on port", PORT));
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});

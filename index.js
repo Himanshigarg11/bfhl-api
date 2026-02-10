@@ -79,7 +79,7 @@ app.post("/bfhl", async (req, res) => {
     /* AI */
     else if (key === "AI") {
   const aiRes = await axios.post(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
     {
       contents: [{ parts: [{ text: body[key] }] }]
     },

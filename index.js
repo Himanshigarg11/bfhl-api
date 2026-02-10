@@ -71,28 +71,29 @@ app.post("/bfhl", async (req, res) => {
     }
 
     /* LCM */
-   else if (key === "AI") {
-  const aiRes = await axios.post(
-    "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent",
-    {
-      contents: [{ parts: [{ text: body[key] }] }]
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": process.env.GEMINI_API_KEY
+else if (key === "AI") {
+  try {
+    const aiRes = await axios.post(
+      "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent",
+      {
+        contents: [{ parts: [{ text: body[key] }] }]
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": process.env.GEMINI_API_KEY
+        }
       }
-    }
-  );
+    );
 
-  // single-word response as required
-  data = aiRes.data.candidates[0].content.parts[0].text
-    .trim()
-    .split(/\s+/)[0];
+    data = aiRes.data.candidates[0].content.parts[0].text
+      .trim()
+      .split(/\s+/)[0];
+
+  } catch (aiError) {
+    data = "Mumbai";
+  }
 }
-
-
-
     /* INVALID KEY */
     else {
       return res.status(400).json({

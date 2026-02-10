@@ -43,33 +43,43 @@ app.post("/bfhl", async (req, res) => {
     const key = keys[0];
     let data;
 
+    /* FIBONACCI */
     if (key === "fibonacci") {
+      const n = body[key];
       let arr = [0, 1];
-      for (let i = 2; i < body[key]; i++) {
+      for (let i = 2; i < n; i++) {
         arr.push(arr[i - 1] + arr[i - 2]);
       }
-      data = arr.slice(0, body[key]);
-    } 
+      data = arr.slice(0, n);
+    }
+
+    /* PRIME */
     else if (key === "prime") {
-      data = body[key].filter(n => {
-        if (n < 2) return false;
-        for (let i = 2; i * i <= n; i++) {
-          if (n % i === 0) return false;
+      data = body[key].filter(num => {
+        if (num < 2) return false;
+        for (let i = 2; i * i <= num; i++) {
+          if (num % i === 0) return false;
         }
         return true;
       });
-    } 
+    }
+
+    /* HCF */
     else if (key === "hcf") {
-      const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+      const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
       data = body[key].reduce((a, b) => gcd(a, b));
-    } 
+    }
+
+    /* LCM */
     else if (key === "lcm") {
-      const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+      const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
       data = body[key].reduce((a, b) => (a * b) / gcd(a, b));
-    } 
+    }
+
+    /* AI */
     else if (key === "AI") {
       const aiRes = await axios.post(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
         {
           contents: [{ parts: [{ text: body[key] }] }]
         },
@@ -78,8 +88,13 @@ app.post("/bfhl", async (req, res) => {
         }
       );
 
-      data = aiRes.data.candidates[0].content.parts[0].text.trim();
-    } 
+      // Single-word AI response (as per PDF)
+      data = aiRes.data.candidates[0].content.parts[0].text
+        .trim()
+        .split(/\s+/)[0];
+    }
+
+    /* INVALID KEY */
     else {
       return res.status(400).json({
         is_success: false,
@@ -88,14 +103,15 @@ app.post("/bfhl", async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       is_success: true,
       official_email: EMAIL,
       data
     });
 
   } catch (err) {
-    res.status(500).json({
+    console.error(err.response?.data || err.message);
+    return res.status(500).json({
       is_success: false,
       official_email: EMAIL,
       error: "Server error"
@@ -103,5 +119,8 @@ app.post("/bfhl", async (req, res) => {
   }
 });
 
+/* SERVER */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on port", PORT));
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});

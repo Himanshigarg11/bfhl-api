@@ -71,15 +71,9 @@ app.post("/bfhl", async (req, res) => {
     }
 
     /* LCM */
-    else if (key === "lcm") {
-      const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-      data = body[key].reduce((a, b) => (a * b) / gcd(a, b));
-    }
-
-    /* AI */
-    else if (key === "AI") {
+   else if (key === "AI") {
   const aiRes = await axios.post(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+    "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent",
     {
       contents: [{ parts: [{ text: body[key] }] }]
     },
@@ -96,6 +90,7 @@ app.post("/bfhl", async (req, res) => {
     .trim()
     .split(/\s+/)[0];
 }
+
 
 
     /* INVALID KEY */

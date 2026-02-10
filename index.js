@@ -78,21 +78,25 @@ app.post("/bfhl", async (req, res) => {
 
     /* AI */
     else if (key === "AI") {
-      const aiRes = await axios.post(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
-        {
-          contents: [{ parts: [{ text: body[key] }] }]
-        },
-        {
-          params: { key: process.env.GEMINI_API_KEY }
-        }
-      );
-
-      // Single-word AI response (as per PDF)
-      data = aiRes.data.candidates[0].content.parts[0].text
-        .trim()
-        .split(/\s+/)[0];
+  const aiRes = await axios.post(
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+    {
+      contents: [{ parts: [{ text: body[key] }] }]
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": process.env.GEMINI_API_KEY
+      }
     }
+  );
+
+  // single-word response as required
+  data = aiRes.data.candidates[0].content.parts[0].text
+    .trim()
+    .split(/\s+/)[0];
+}
+
 
     /* INVALID KEY */
     else {
@@ -110,13 +114,14 @@ app.post("/bfhl", async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err.response?.data || err.message);
-    return res.status(500).json({
-      is_success: false,
-      official_email: EMAIL,
-      error: "Server error"
-    });
-  }
+  console.error("AI ERROR:", err.response?.data || err.message);
+  return res.status(500).json({
+    is_success: false,
+    official_email: EMAIL,
+    error: "Server error"
+  });
+}
+
 });
 
 /* SERVER */
